@@ -89,15 +89,23 @@ generate_appimage()
   #   echo "" >> ./$APP.AppDir/Recipe
   #   cat $RECIPE >> ./$APP.AppDir/Recipe
   # fi
-  wget -c "https://github.com/probonopd/AppImageKit/releases/download/5/AppImageAssistant" # (64-bit)
+   # Build AppImageKit
+  if [ ! -d AppImageKit ] ; then
+    git clone  --depth 1 https://github.com/appimage-packages/AppImageKit
+  fi
+  cd /AppImageKit/
+  git_pull_rebase_helper
+  ./build.sh
   chmod a+x ./AppImageAssistant
+  chmod a+x ./AppRun
+  mv ./AppRun $APP.AppDir/
   mkdir -p ../out
   rm ../out/$APP"-"$VERSION"-x86_64.AppImage" || true
   ./AppImageAssistant ./$APP.AppDir/ ../out/$APP"-"$VERSION"-"$ARCH".AppImage"
 }
 
 # Generate status file for use by apt-get; assuming that the recipe uses no newer
-# ingredients than what would require more recent dependencies than what we assume 
+# ingredients than what would require more recent dependencies than what we assume
 # to be part of the base system
 generate_status()
 {
@@ -109,5 +117,5 @@ generate_status()
 }
 
 # transfer.sh
-transfer() { if [ $# -eq 0 ]; then echo "No arguments specified. Usage:\necho transfer /tmp/test.md\ncat /tmp/test.md | transfer test.md"; return 1; fi 
-tmpfile=$( mktemp -t transferXXX ); if tty -s; then basefile=$(basename "$1" | sed -e 's/[^a-zA-Z0-9._-]/-/g'); curl --progress-bar --upload-file "$1" "https://transfer.sh/$basefile" >> $tmpfile; else curl --progress-bar --upload-file "-" "https://transfer.sh/$1" >> $tmpfile ; fi; cat $tmpfile; rm -f $tmpfile; } 
+transfer() { if [ $# -eq 0 ]; then echo "No arguments specified. Usage:\necho transfer /tmp/test.md\ncat /tmp/test.md | transfer test.md"; return 1; fi
+tmpfile=$( mktemp -t transferXXX ); if tty -s; then basefile=$(basename "$1" | sed -e 's/[^a-zA-Z0-9._-]/-/g'); curl --progress-bar --upload-file "$1" "https://transfer.sh/$basefile" >> $tmpfile; else curl --progress-bar --upload-file "-" "https://transfer.sh/$1" >> $tmpfile ; fi; cat $tmpfile; rm -f $tmpfile; }
